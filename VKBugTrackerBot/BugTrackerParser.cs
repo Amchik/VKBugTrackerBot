@@ -89,7 +89,7 @@ namespace VKBugTrackerBot
                 Report report = new Report
                 {
                     ReportID = rawReport.Id,
-                    Name = reportInfo.ChildNodes[1].ChildNodes[0].InnerText,
+                    Name = reportInfo.ChildNodes[1].ChildNodes[0].InnerText.Replace("&quot;", "\""),
                     Status = reportInfo.ChildNodes[5].ChildNodes[3].ChildNodes[0].InnerText,
                     Product = tags[0]
                 };
