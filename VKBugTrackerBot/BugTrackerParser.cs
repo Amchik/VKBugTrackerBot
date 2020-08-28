@@ -68,7 +68,8 @@ namespace VKBugTrackerBot
                 try
                 {
                     res = (HttpWebResponse)request.GetResponse();
-                } catch { continue; }
+                }
+                catch { continue; }
                 String body;
                 using (StreamReader stream = new StreamReader(res.GetResponseStream(), Encoding.GetEncoding("windows-1251")))
                     body = stream.ReadToEnd();

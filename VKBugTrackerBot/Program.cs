@@ -16,7 +16,7 @@ namespace VKBugTrackerBot
                 arg.RemoveRange(0, 2);
                 if (!arg.Contains('='))
                 {
-                    answer[new String(arg.ToArray())] =  "True";
+                    answer[new String(arg.ToArray())] = "True";
                 }
                 String[] str = new String(arg.ToArray()).Split("=".ToArray(), 2);
                 if (str.Length != 2 || str[0] == "") continue;
@@ -52,7 +52,7 @@ namespace VKBugTrackerBot
             if (!args.ContainsKey("remixsid") || !args.ContainsKey("access-token") || !args.ContainsKey("group-id"))
             {
                 ReportError("One of arguments(3) doesn't given.\n" +
-                	"\tremixsid <string> | access-token <string> | group-id <unsigned int64>");
+                    "\tremixsid <string> | access-token <string> | group-id <unsigned int64>");
                 return 1;
             }
             UInt64 group_id;

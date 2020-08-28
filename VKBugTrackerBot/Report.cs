@@ -1,4 +1,5 @@
 ﻿using System;
+
 namespace VKBugTrackerBot
 {
     public sealed class Report
