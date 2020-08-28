@@ -25,12 +25,13 @@ namespace VKBugTrackerBot
             users = new Dictionary<Int64, UserPreferences>();
             this.groupId = groupId;
 
-#if DEBUG
-            users[343491653] = new UserPreferences
+            foreach (var user in MainClass.Config.Admins)
             {
-                IsAdmin = true
-            };
-#endif
+                users[user] = new UserPreferences
+                {
+                    IsAdmin = true
+                };
+            }
         }
 
         public void Dispose()
@@ -72,7 +73,6 @@ namespace VKBugTrackerBot
             alive = true;
             while (alive)
             {
-                Console.WriteLine("VkBot");
                 Thread.Sleep(600);
                 var e = api.Messages.GetLongPollHistory(new MessagesGetLongPollHistoryParams
                 {

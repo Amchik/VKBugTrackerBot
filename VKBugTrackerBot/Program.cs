@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,6 +10,8 @@ namespace VKBugTrackerBot
 {
     internal static class MainClass
     {
+        public static BotConfig Config { get; private set; }
+
         private static Dictionary<String, String> GetArguments(String[] args)
         {
             Dictionary<String, String> answer = new Dictionary<String, String>();
@@ -42,32 +46,52 @@ namespace VKBugTrackerBot
 
         private static Int32 Main(String[] args)
         {
-            var code = MainAsync(GetArguments(args)).GetAwaiter().GetResult();
+            var code = MainAsync(args).GetAwaiter().GetResult();
             ReportInfo($"Exiting with code {code}.");
             return code;
         }
 
-        private static async Task<Int32> MainAsync(Dictionary<String, String> args)
+        private static async Task<Int32> MainAsync(String[] args)
         {
-            if (!args.ContainsKey("remixsid") || !args.ContainsKey("access-token") || !args.ContainsKey("group-id"))
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            if (!File.Exists("config.json"))
             {
-                ReportError("One of arguments(3) doesn't given.\n" +
-                    "\tremixsid <string> | access-token <string> | group-id <unsigned int64>");
-                return 1;
+                ReportError("Failed to find 'config.json'.");
+                ReportInfo("Generating config...");
+                try
+                {
+                    await File.WriteAllTextAsync("config.json",
+                        BotConfig.CreateEmpty().Serialize());
+                }
+                catch (Exception e)
+                {
+                    ReportError($"Failed to generate config: [{e.GetType().Name}] {e.Message}");
+                    return 1;
+                }
+                ReportInfo("New config stored at 'config.json'. Edit it and run again.");
+                return 2;
             }
-            UInt64 group_id;
+            String rawConfig;
             try
             {
-                group_id = Convert.ToUInt64(args["group-id"]);
+                rawConfig = File.ReadAllText("config.json");
             }
-            catch
+            catch (Exception e)
             {
-                ReportError("Argument [\"group-id\"] is invalid.\n" +
-                    "\tgroup-id <unsigned int64>, but provided <string>");
-                return 1;
+                ReportError($"Failed to open 'config.json': [{e.GetType().Name}] {e.Message}");
+                return 3;
             }
-            var t = new BugTrackerParser(args["remixsid"]);
-            var d = new VkBot(args["access-token"], group_id);
+            try
+            {
+                Config = BotConfig.Deserialize(rawConfig);
+            }
+            catch (Exception e)
+            {
+                ReportError($"Failed to read 'config.json': [{e.GetType().Name}] {e.Message}");
+                return 4;
+            }
+            var t = new BugTrackerParser(Config.RemixSid);
+            var d = new VkBot(Config.Token, Config.GroupId);
             t.OnNewReport += (_, e) =>
             {
                 d.SendReport(e);
