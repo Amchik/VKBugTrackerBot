@@ -118,6 +118,7 @@ namespace VKBugTrackerBot
                                     RandomId = new Random().Next(),
                                     Message = $"[FAIL] Keine Argumente [1..] angegeben"
                                 });
+                                break;
                             }
                             String pr = String.Join(" ", args, 1, args.Length - 1);
                             if (user.ProductsBlacklist.Contains(pr))
