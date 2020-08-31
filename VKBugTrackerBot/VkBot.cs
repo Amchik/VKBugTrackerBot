@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using VkNet;
 using VkNet.Model;
@@ -95,17 +96,17 @@ namespace VKBugTrackerBot
                             {
                                 PeerId = msg.PeerId,
                                 RandomId = new Random().Next(),
-                                Message = $"[OK] DisableMessages={user.DisableMessages}"
+                                Message = "Service alerts " + (!user.DisableMessages ? "enabled" : "disabled")
                             });
                             break;
 
                         case "/toggleNotifications":
-                            user.DisableMessages = !user.AllowNotification;
+                            user.AllowNotification = !user.AllowNotification;
                             api.Messages.Send(new MessagesSendParams
                             {
                                 PeerId = msg.PeerId,
                                 RandomId = new Random().Next(),
-                                Message = $"[OK] AllowNotification={user.DisableMessages}"
+                                Message = "Notifications " + (user.AllowNotification ? "enabled" : "disabled")
                             });
                             break;
 
@@ -116,7 +117,7 @@ namespace VKBugTrackerBot
                                 {
                                     PeerId = msg.PeerId,
                                     RandomId = new Random().Next(),
-                                    Message = $"[FAIL] Keine Argumente [1..] angegeben"
+                                    Message = $"Usage: /toggleProduct <product name>"
                                 });
                                 break;
                             }
@@ -133,21 +134,25 @@ namespace VKBugTrackerBot
                             {
                                 PeerId = msg.PeerId,
                                 RandomId = new Random().Next(),
-                                Message = $"[OK] Blacklisted[\"{pr}\"]={user.ProductsBlacklist.Contains(pr)}"
+                                Message = $"{pr} is " + (user.ProductsBlacklist.Contains(pr) ? "added" : "removed") + " from blacklist."
                             });
                             break;
 
                         case "/status":
                             {
-                                var bl = String.Join(", ", user.ProductsBlacklist.Select(t => $"\"{t}\""));
+                                var bl = String.Join(", ", user.ProductsBlacklist);
+                                StringBuilder sb = new StringBuilder();
+                                if (user.IsAdmin) sb.Append("Admin ");
+                                if (user.AllowNotification) sb.Append("Notifications ");
+                                if (!user.DisableMessages) sb.Append("Messages ");
+                                sb.AppendLine();
+                                sb.Append("Blacklisted: ");
+                                sb.Append(bl);
                                 api.Messages.Send(new MessagesSendParams
                                 {
                                     PeerId = msg.PeerId,
                                     RandomId = new Random().Next(),
-                                    Message = $"[OK] IsAdmin={user.IsAdmin}\n" +
-                                        $"AllowNotification={user.AllowNotification}\n" +
-                                        $"DisableMessages={user.DisableMessages}\n" +
-                                        $"Blacklisted=[{bl}]"
+                                    Message = sb.ToString()
                                 });
                             }
                             break;
@@ -159,7 +164,7 @@ namespace VKBugTrackerBot
                                 {
                                     PeerId = msg.PeerId,
                                     RandomId = new Random().Next(),
-                                    Message = $"[FAIL] Berechtigungen verweigert."
+                                    Message = $"Unkown command"
                                 });
                                 return;
                             }
@@ -169,7 +174,7 @@ namespace VKBugTrackerBot
                                 {
                                     PeerId = msg.PeerId,
                                     RandomId = new Random().Next(),
-                                    Message = $"[FAIL] Keine Argumente [1..] angegeben"
+                                    Message = $"Usage: /send <message>"
                                 });
                             }
                             String snd = String.Join(" ", args, 1, args.Length - 1);
@@ -178,19 +183,20 @@ namespace VKBugTrackerBot
                             {
                                 PeerId = msg.PeerId,
                                 RandomId = new Random().Next(),
-                                Message = $"[OK] \\keiner"
+                                Message = $"Ok"
                             });
                             break;
 
                         case "/admin":
                             {
+                                const String USAGE = "Usage: /admin <user id>";
                                 if (!user.IsAdmin)
                                 {
                                     api.Messages.Send(new MessagesSendParams
                                     {
                                         PeerId = msg.PeerId,
                                         RandomId = new Random().Next(),
-                                        Message = $"[FAIL] Berechtigungen verweigert."
+                                        Message = $"Unkown command"
                                     });
                                     return;
                                 }
@@ -205,7 +211,7 @@ namespace VKBugTrackerBot
                                     {
                                         PeerId = msg.PeerId,
                                         RandomId = new Random().Next(),
-                                        Message = $"[FAIL] Argument [1] not given"
+                                        Message = USAGE
                                     });
                                     return;
                                 }
@@ -215,7 +221,7 @@ namespace VKBugTrackerBot
                                     {
                                         PeerId = msg.PeerId,
                                         RandomId = new Random().Next(),
-                                        Message = $"[FAIL] Invalid argument [1] (expected: <int32>, actual: <string>)"
+                                        Message = USAGE
                                     });
                                     return;
                                 }
@@ -225,7 +231,7 @@ namespace VKBugTrackerBot
                                     {
                                         PeerId = msg.PeerId,
                                         RandomId = new Random().Next(),
-                                        Message = $"[FAIL] [id{toAdmin}|User] not joined!"
+                                        Message = $"Error: [id{toAdmin}|User] not joined"
                                     });
                                     return;
                                 }
@@ -234,31 +240,41 @@ namespace VKBugTrackerBot
                                 {
                                     PeerId = msg.PeerId,
                                     RandomId = new Random().Next(),
-                                    Message = $"[OK] [[id{toAdmin}|{toAdmin}]]IsAdmin={v.IsAdmin}"
+                                    Message = $"[[id{toAdmin}|{toAdmin}]] is now " + (v.IsAdmin ? "admin" : "not admin")
                                 });
                             }
                             break;
 
                         case "/help":
-                            api.Messages.Send(new MessagesSendParams
                             {
-                                PeerId = msg.PeerId,
-                                RandomId = new Random().Next(),
-                                Message = $"[OK] /toggleAll - nachrichten umschalten\n" +
-                                    "/toggleNotifications - benachrichtigungen umschalten\n" +
-                                    "/toggleProduct - produktanzeige umschalten\n" +
-                                    "/status - unfos über dich\n" +
-                                    "/send - benachrichtigung senden\n" +
-                                    "/help - zeige diese nachricht\n\n"
-                            });
-                            break;
+                                StringBuilder sb = new StringBuilder();
+                                sb.AppendLine("--- COMMANDS ---");
+                                sb.AppendLine("/toggleAll - toggle all messages");
+                                sb.AppendLine("/toggleNotifications - toggle service messages");
+                                sb.AppendLine("/toggleProduct - toggle notifications from product");
+                                sb.AppendLine("/status - info about you");
+                                sb.AppendLine("/help - show this message");
+                                if (user.IsAdmin)
+                                {
+                                    sb.AppendLine("--- ADMIN COMMANDS ---");
+                                    sb.AppendLine("/send - Send a service message");
+                                    sb.AppendLine("/admin - Grant/revoke admin privileges");
+                                }
+                                api.Messages.Send(new MessagesSendParams
+                                {
+                                    PeerId = msg.PeerId,
+                                    RandomId = new Random().Next(),
+                                    Message = sb.ToString()
+                                });
+                                break;
+                            }
 
                         default:
                             api.Messages.Send(new MessagesSendParams
                             {
                                 PeerId = msg.PeerId,
                                 RandomId = new Random().Next(),
-                                Message = "[FAIL] Nicht gefunden."
+                                Message = "Unkown command"
                             });
                             break;
                     }
