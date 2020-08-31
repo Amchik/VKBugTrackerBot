@@ -83,6 +83,7 @@ namespace VKBugTrackerBot
                 ts = e.NewPts;
                 var msg = e.Messages.FirstOrDefault();
                 if (msg == null) continue;
+                if (msg.FromId < 0) continue;
                 if (!users.ContainsKey((Int64)msg.PeerId)) users[(Int64)msg.PeerId] = new UserPreferences();
                 var user = users[(Int64)msg.PeerId];
                 if (msg.Text.FirstOrDefault() == '/')
