@@ -86,8 +86,18 @@ namespace VKBugTrackerBot
                 {
                     var html = new HtmlDocument();
                     html.LoadHtml(body);
-                    HtmlNode rawReport = html.GetElementbyId("bt_reports").ChildNodes[0];
-                    HtmlNode reportInfo = rawReport.ChildNodes[3];
+                    HtmlNode rawReport, reportInfo;
+                    try
+                    {
+                        rawReport = html.GetElementbyId("bt_reports").ChildNodes[0];
+                        reportInfo = rawReport.ChildNodes[3];
+                    }
+                    catch (NullReferenceException)
+                    {
+                        MainClass.ReportError("[BugTrackerParser] Failed to parse report.");
+                        MainClass.ReportInfo("Continue executing BugTrackerParser.");
+                        continue;
+                    }
                     var tags = reportInfo.ChildNodes[3].ChildNodes.Select(n => n.InnerText).ToList();
                     report = new Report
                     {
