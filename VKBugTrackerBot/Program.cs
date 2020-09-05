@@ -12,32 +12,22 @@ namespace VKBugTrackerBot
     {
         public static BotConfig Config { get; private set; }
 
-        private static Dictionary<String, String> GetArguments(String[] args)
+        private static void PrintTime()
         {
-            Dictionary<String, String> answer = new Dictionary<String, String>();
-            foreach (List<char> arg in args.Where(arg => arg.StartsWith("--", StringComparison.Ordinal)).Select(s => s.ToList()))
-            {
-                arg.RemoveRange(0, 2);
-                if (!arg.Contains('='))
-                {
-                    answer[new String(arg.ToArray())] = "True";
-                }
-                String[] str = new String(arg.ToArray()).Split("=".ToArray(), 2);
-                if (str.Length != 2 || str[0] == "") continue;
-                answer[str[0]] = str[1];
-            }
-            return answer;
+            Console.Write($"[{new DateTime().ToString("u")}] ");
         }
 
-        private static void ReportInfo(String message)
+        public static void ReportInfo(String message)
         {
+            PrintTime();
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.Write("INF: ");
             Console.ResetColor();
             Console.Write(message + Environment.NewLine);
         }
-        private static void ReportError(String message)
+        public static void ReportError(String message)
         {
+            PrintTime();
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("ERR! ");
             Console.ResetColor();

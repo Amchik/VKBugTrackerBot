@@ -81,24 +81,34 @@ namespace VKBugTrackerBot
                         break;
                     }
                 }
-                var html = new HtmlDocument();
-                html.LoadHtml(body);
-                HtmlNode rawReport = html.GetElementbyId("bt_reports").ChildNodes[0];
-                HtmlNode reportInfo = rawReport.ChildNodes[3];
-                var tags = reportInfo.ChildNodes[3].ChildNodes.Select(n => n.InnerText).ToList();
-                Report report = new Report
+                Report report;
+                try
                 {
-                    ReportID = rawReport.Id,
-                    Name = reportInfo.ChildNodes[1].ChildNodes[0].InnerText.Replace("&quot;", "\""),
-                    Status = reportInfo.ChildNodes[5].ChildNodes[3].ChildNodes[0].InnerText,
-                    Product = tags[0]
-                };
-                tags.RemoveAt(0);
-                report.Tags = tags.Where(t => !String.IsNullOrWhiteSpace(t)).ToArray();
-                if (reportIds.Contains(report.ReportID)) continue;
-                if (reportIds.Count >= MAX_SAVED_REPORTS_ID)
+                    var html = new HtmlDocument();
+                    html.LoadHtml(body);
+                    HtmlNode rawReport = html.GetElementbyId("bt_reports").ChildNodes[0];
+                    HtmlNode reportInfo = rawReport.ChildNodes[3];
+                    var tags = reportInfo.ChildNodes[3].ChildNodes.Select(n => n.InnerText).ToList();
+                    report = new Report
+                    {
+                        ReportID = rawReport.Id,
+                        Name = reportInfo.ChildNodes[1].ChildNodes[0].InnerText.Replace("&quot;", "\""),
+                        Status = reportInfo.ChildNodes[5].ChildNodes[3].ChildNodes[0].InnerText,
+                        Product = tags[0]
+                    };
+                    tags.RemoveAt(0);
+                    report.Tags = tags.Where(t => !String.IsNullOrWhiteSpace(t)).ToArray();
+                    if (reportIds.Contains(report.ReportID)) continue;
+                    if (reportIds.Count >= MAX_SAVED_REPORTS_ID)
+                    {
+                        reportIds.RemoveRange(0, reportIds.Count - (MAX_SAVED_REPORTS_ID - 1));
+                    }
+                }
+                catch (Exception e)
                 {
-                    reportIds.RemoveRange(0, reportIds.Count - (MAX_SAVED_REPORTS_ID - 1));
+                    MainClass.ReportError($"Exception at BugTrackerParser: [{e.GetType().Name}] {e.Message}");
+                    MainClass.ReportInfo("Continue executing BugTrackerParser.");
+                    continue;
                 }
                 reportIds.Add(report.ReportID);
                 OnNewReport?.Invoke(this, report);
