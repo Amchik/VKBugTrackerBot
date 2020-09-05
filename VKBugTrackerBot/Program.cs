@@ -14,7 +14,7 @@ namespace VKBugTrackerBot
 
         private static void PrintTime()
         {
-            Console.Write($"[{new DateTime().ToString("u")}] ");
+            Console.Write($"[{DateTime.Now.ToString("u")}] ");
         }
 
         public static void ReportInfo(String message)
