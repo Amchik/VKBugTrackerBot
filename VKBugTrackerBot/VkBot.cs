@@ -11,7 +11,7 @@ namespace VKBugTrackerBot
 {
     internal sealed class VkBot : IDisposable
     {
-        public const String VKBOT_SAVE_TO_BOOKMARKS = "Сохранить в закладках";
+        public const String SAVE_TO_BOOKMARKS = "Сохранить в закладках";
 
         private readonly VkApi api;
         private readonly Dictionary<Int64, UserPreferences> users;
