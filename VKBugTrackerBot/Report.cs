@@ -26,10 +26,18 @@ namespace VKBugTrackerBot
         public String Status { get; set; }
 
         /// <summary>
-        /// Gets the report identifier.
+        /// Gets the report identifier string.
         /// </summary>
-        /// <value>The report identifier.</value>
-        // Example: bugreport208755
+        /// <value>The report identifier string.</value>
+        /// <example>
+        /// bugreport208755
+        /// </example>
+        [Obsolete("This property returns string value. Use Id for integer value", false)]
         public String ReportID { get; set; }
+        /// <summary>
+        /// Gets the report id.
+        /// </summary>
+        /// <value>The report id.</value>
+        public Int32 Id { get; set; }
     }
 }

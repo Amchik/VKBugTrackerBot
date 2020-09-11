@@ -16,8 +16,6 @@ namespace VKBugTrackerBot
         private Cookie remixsid;
         private Boolean alive = false;
 
-        private readonly List<String> reportIds;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="T:VKBugTracker.BugTrackerParser"/> class.
         /// </summary>
@@ -28,7 +26,6 @@ namespace VKBugTrackerBot
             {
                 Domain = ".vk.com"
             };
-            reportIds = new List<string>(51);
         }
 
         /// <summary>
@@ -101,18 +98,13 @@ namespace VKBugTrackerBot
                     var tags = reportInfo.ChildNodes[3].ChildNodes.Select(n => n.InnerText).ToList();
                     report = new Report
                     {
-                        ReportID = rawReport.Id,
+                        Id = Convert.ToInt32(rawReport.Id.Replace("bugreport", String.Empty)),
                         Name = reportInfo.ChildNodes[1].ChildNodes[0].InnerText.Replace("&quot;", "\""),
                         Status = reportInfo.ChildNodes[5].ChildNodes[3].ChildNodes[0].InnerText,
                         Product = tags[0]
                     };
                     tags.RemoveAt(0);
                     report.Tags = tags.Where(t => !String.IsNullOrWhiteSpace(t)).ToArray();
-                    if (reportIds.Contains(report.ReportID)) continue;
-                    if (reportIds.Count >= MAX_SAVED_REPORTS_ID)
-                    {
-                        reportIds.RemoveRange(0, reportIds.Count - (MAX_SAVED_REPORTS_ID - 1));
-                    }
                 }
                 catch (Exception e)
                 {
@@ -120,7 +112,6 @@ namespace VKBugTrackerBot
                     MainClass.ReportInfo("Continue executing BugTrackerParser.");
                     continue;
                 }
-                reportIds.Add(report.ReportID);
                 OnNewReport?.Invoke(this, report);
             }
         }

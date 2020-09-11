@@ -11,6 +11,8 @@ namespace VKBugTrackerBot
 {
     internal sealed class VkBot : IDisposable
     {
+        public const String VKBOT_SAVE_TO_BOOKMARKS = "Сохранить в закладках";
+
         private readonly VkApi api;
         private readonly Dictionary<Int64, UserPreferences> users;
         private readonly UInt64 groupId;
@@ -44,14 +46,14 @@ namespace VKBugTrackerBot
         {
             String rep = $"[{report.Product}] {report.Name}\n" +
                 $"{String.Join(", ", report.Tags)}\n" +
-                $"https://vk.com/{report.ReportID.Replace("report", "")}";
+                $"https://vk.com/bug{report.Id}";
             var ids = users.Where(u => !u.Value.ProductsBlacklist.Contains(report.Product) && !u.Value.DisableMessages).Select(u => u.Key);
             if (!ids.Any()) return;
             api.Messages.SendToUserIds(new MessagesSendParams
             {
                 Message = rep,
                 UserIds = ids,
-                RandomId = new Random().Next()
+                RandomId = report.Id
             });
         }
 
