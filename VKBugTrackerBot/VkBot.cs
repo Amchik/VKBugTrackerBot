@@ -172,7 +172,7 @@ namespace VKBugTrackerBot
                         {
                             PeerId = msg.PeerId,
                             RandomId = new Random().Next(),
-                            Message = $"Report {report.Name} (#{report.Id}) added to bookmarks"
+                            Message = $"Report \"{report.Name}\" (#{report.Id}) added to bookmarks"
                         });
                     }
                     else
