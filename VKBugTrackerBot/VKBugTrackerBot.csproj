@@ -9,7 +9,7 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.11.24" />
     <PackageReference Include="System.Text.Encoding" Version="4.3.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.1" />
-    <PackageReference Include="VkNet" Version="1.55.0" />
+    <PackageReference Include="VkNet" Version="1.56.0" />
   </ItemGroup>
 
 </Project>
