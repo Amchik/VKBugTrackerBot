@@ -198,43 +198,7 @@ namespace VKBugTrackerBot
                             {
                                 PeerId = msg.PeerId,
                                 RandomId = new Random().Next(),
-                                Message = $"DEBUG: {EnableReports}"
-                            });
-                            break;
-
-                        // TODO: FIXME: here
-                        case "/payload":
-                            user.Bookmarks.Add(new Report
-                            {
-                                Id = new Random().Next(),
-                                Name = "test",
-                                Product = "undefined",
-                                Status = "online",
-                                Tags = new[] { "debug", "must-remove" }
-                            });
-                            user.Bookmarks.Add(new Report
-                            {
-                                Id = new Random().Next(),
-                                Name = "test 2",
-                                Product = "undefined",
-                                Status = "online",
-                                Tags = new[] { "debug", "must-remove" }
-                            });
-                            user.Bookmarks.Add(new Report
-                            {
-                                Id = new Random().Next(),
-                                Name = "test 3",
-                                Product = "undefined",
-                                Status = "online",
-                                Tags = new[] { "debug", "must-remove" }
-                            });
-                            user.Bookmarks.Add(new Report
-                            {
-                                Id = new Random().Next(),
-                                Name = "test 4",
-                                Product = "undefined",
-                                Status = "online",
-                                Tags = new[] { "debug", "must-remove" }
+                                Message = $"Reports show: {EnableReports}"
                             });
                             break;
 #endif
