@@ -6,11 +6,8 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build-env
 
 WORKDIR /app
 
-COPY VKBugTrackerBot/VKBugTrackerBot.csproj ./
-RUN dotnet restore
-
 COPY VKBugTrackerBot/. ./
-RUN dotnet build --configuration Release --output out/ --no-dependencies
+RUN dotnet publish --configuration Release --output out/
 
 # ====================
 #           RUN SECTOR
