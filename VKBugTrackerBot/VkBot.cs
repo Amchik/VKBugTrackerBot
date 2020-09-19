@@ -2,19 +2,31 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using VkNet;
+using VkNet.Enums.SafetyEnums;
 using VkNet.Model;
+using VkNet.Model.Keyboard;
 using VkNet.Model.RequestParams;
+using VkNet.Model.Template;
+using VkNet.Model.Template.Carousel;
 
 namespace VKBugTrackerBot
 {
     internal sealed class VkBot : IDisposable
     {
-        public const String VKBOT_SAVE_TO_BOOKMARKS = "Сохранить в закладках";
+        public const String SAVE_TO_BOOKMARKS = "Сохранить в закладках";
+        public const String REMOVE_FROM_BOOKMARKS = "Удалить из закладок";
+        public const Int32 LAST_REPORTS_COUNT = 50;
+
+#if DEBUG
+        public static Boolean EnableReports = true;
+#endif
 
         private readonly VkApi api;
         private readonly Dictionary<Int64, UserPreferences> users;
+        private readonly List<Report> lastReports;
         private readonly UInt64 groupId;
         private Boolean alive;
 
@@ -26,6 +38,7 @@ namespace VKBugTrackerBot
                 AccessToken = accessToken
             });
             users = new Dictionary<Int64, UserPreferences>();
+            lastReports = new List<Report>();
             this.groupId = groupId;
 
             foreach (var user in MainClass.Config.Admins)
@@ -44,6 +57,14 @@ namespace VKBugTrackerBot
 
         public void SendReport(Report report)
         {
+#if DEBUG
+            if (!EnableReports) return;
+#endif
+            if (lastReports.Count >= LAST_REPORTS_COUNT)
+            {
+                lastReports.RemoveRange(0, lastReports.Count - LAST_REPORTS_COUNT + 1);
+            }
+            lastReports.Add(report);
             String rep = $"[{report.Product}] {report.Name}\n" +
                 $"{String.Join(", ", report.Tags)}\n" +
                 $"https://vk.com/bug{report.Id}";
@@ -53,7 +74,41 @@ namespace VKBugTrackerBot
             {
                 Message = rep,
                 UserIds = ids,
-                RandomId = report.Id
+#if !DEBUG
+                RandomId = report.Id,
+#else
+                RandomId = new Random().Next(),
+#endif
+                Keyboard = new MessageKeyboard
+                {
+                    Inline = true,
+                    OneTime = false,
+                    Buttons = new MessageKeyboardButton[][]
+                    {
+                        new MessageKeyboardButton[]
+                        {
+                            new MessageKeyboardButton
+                            {
+                                Action = new MessageKeyboardButtonAction
+                                {
+                                    Type = KeyboardButtonActionType.OpenLink,
+                                    Label = "Открыть отчёт",
+                                    Link = new Uri($"https://vk.com/bug{report.Id}")
+                                }
+                            },
+                            new MessageKeyboardButton
+                            {
+                                Action = new MessageKeyboardButtonAction
+                                {
+                                    Type = KeyboardButtonActionType.Text,
+                                    Label = SAVE_TO_BOOKMARKS,
+                                    Payload = JsonSerializer.Serialize(new BookmarksEventPayload(BookmarksEventPayload.EventType.Add, report.Id))
+                                },
+                                Color = KeyboardButtonColor.Primary
+                            }
+                        }
+                    }
+                }
             });
         }
 
@@ -88,11 +143,112 @@ namespace VKBugTrackerBot
                 if (msg.FromId < 0) continue;
                 if (!users.ContainsKey((Int64)msg.PeerId)) users[(Int64)msg.PeerId] = new UserPreferences();
                 var user = users[(Int64)msg.PeerId];
+                if (msg.Text == SAVE_TO_BOOKMARKS || msg.Text == REMOVE_FROM_BOOKMARKS)
+                {
+                    BookmarksEventPayload eventPayload;
+                    try
+                    {
+                        eventPayload = JsonSerializer.Deserialize<BookmarksEventPayload>(msg.Payload);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                    if (eventPayload.Type == BookmarksEventPayload.EventType.Add)
+                    {
+                        Report report = lastReports.Find(r => r.Id == eventPayload.ReportId);
+                        if (report == null)
+                        {
+                            api.Messages.Send(new MessagesSendParams
+                            {
+                                PeerId = msg.PeerId,
+                                RandomId = new Random().Next(),
+                                Message = "Report outdated"
+                            });
+                            continue;
+                        }
+                        user.Bookmarks.Add(report);
+                        api.Messages.Send(new MessagesSendParams
+                        {
+                            PeerId = msg.PeerId,
+                            RandomId = new Random().Next(),
+                            Message = $"Report \"{report.Name}\" (#{report.Id}) added to bookmarks"
+                        });
+                    }
+                    else
+                    {
+                        user.Bookmarks.RemoveWhere(r => r.Id == eventPayload.ReportId);
+                        api.Messages.Send(new MessagesSendParams
+                        {
+                            PeerId = msg.PeerId,
+                            RandomId = new Random().Next(),
+                            Message = "Report removed from bookmarks"
+                        });
+                    }
+                }
                 if (msg.Text.FirstOrDefault() == '/')
                 {
                     String[] args = msg.Text.Split(' ');
                     switch (args.FirstOrDefault())
                     {
+#if DEBUG
+                        case "/shutup":
+                            EnableReports = !EnableReports;
+                            api.Messages.Send(new MessagesSendParams
+                            {
+                                PeerId = msg.PeerId,
+                                RandomId = new Random().Next(),
+                                Message = $"Reports show: {EnableReports}"
+                            });
+                            break;
+#endif
+                        case "/bookmarks":
+                            Int32 startIndex = 0;
+                            if (args.Length == 2)
+                            {
+                                try
+                                {
+                                    startIndex = (Int32.Parse(args[1]) - 1) * 3;
+                                }
+                                catch
+                                {
+                                    api.Messages.Send(new MessagesSendParams
+                                    {
+                                        PeerId = msg.PeerId,
+                                        RandomId = new Random().Next(),
+                                        Message = $"Использование: /bookmarks [page (int)]"
+                                    });
+                                    break;
+                                }
+                            }
+                            KeyboardBuilder kb = new KeyboardBuilder(false);
+                            kb.SetInline();
+                            foreach (var bookmark in user.Bookmarks.Skip(startIndex).Take(3))
+                            {
+                                kb.AddButton(new MessageKeyboardButtonAction
+                                {
+                                    Type = KeyboardButtonActionType.OpenLink,
+                                    Label = new String($"{bookmark.Product}: {bookmark.Name}".Take(40).ToArray()),
+                                    Link = new Uri($"https://vk.com/bug{bookmark.Id}"),
+                                    Payload = ""
+                                });
+                                kb.AddButton(new MessageKeyboardButtonAction
+                                {
+                                    Type = KeyboardButtonActionType.Text,
+                                    Label = REMOVE_FROM_BOOKMARKS,
+                                    Payload = JsonSerializer.Serialize(new BookmarksEventPayload(BookmarksEventPayload.EventType.Remove, bookmark.Id))
+                                }, KeyboardButtonColor.Negative);
+                                kb.AddLine();
+                            }
+                            api.Messages.Send(new MessagesSendParams
+                            {
+                                PeerId = msg.PeerId,
+                                RandomId = new Random().Next(),
+                                Message = $"Закладки ({startIndex}-{Math.Min(startIndex + 3, user.Bookmarks.Count)}/{user.Bookmarks.Count})",
+                                Keyboard = kb.Build()
+                            });
+                            break;
+
                         case "/toggleAll":
                             user.DisableMessages = !user.DisableMessages;
                             api.Messages.Send(new MessagesSendParams
@@ -256,6 +412,7 @@ namespace VKBugTrackerBot
                                 sb.AppendLine("/toggleNotifications - toggle service messages");
                                 sb.AppendLine("/toggleProduct - toggle notifications from product");
                                 sb.AppendLine("/status - info about you");
+                                sb.AppendLine("/bookmarks - show bookmarks");
                                 sb.AppendLine("/help - show this message");
                                 if (user.IsAdmin)
                                 {

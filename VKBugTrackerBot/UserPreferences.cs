@@ -11,12 +11,15 @@ namespace VKBugTrackerBot
         public Boolean AllowNotification { get; set; }
         public Boolean DisableMessages { get; set; }
 
+        public HashSet<Report> Bookmarks { get; set; }
+
         public UserPreferences()
         {
             IsAdmin = false;
             ProductsBlacklist = new List<String>();
             AllowNotification = true;
             DisableMessages = false;
+            Bookmarks = new HashSet<Report>();
         }
     }
 }
