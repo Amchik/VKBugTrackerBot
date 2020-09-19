@@ -28,7 +28,6 @@ namespace VKBugTrackerBot
                 {
                     Context.Reply(new MessagesSendParams
                     {
-                        PeerId = Context.Message.PeerId,
                         RandomId = new Random().Next(),
                         Message = $"Использование: /bookmarks [page (int)]"
                     });
@@ -56,7 +55,6 @@ namespace VKBugTrackerBot
             }
             Context.Reply(new MessagesSendParams
             {
-                PeerId = Context.Message.PeerId,
                 RandomId = new Random().Next(),
                 Message = $"Закладки ({startIndex}-{Math.Min(startIndex + 3, Context.User.Bookmarks.Count)}/{Context.User.Bookmarks.Count})",
                 Keyboard = kb.Build()
@@ -69,7 +67,6 @@ namespace VKBugTrackerBot
             Context.User.DisableMessages = !Context.User.DisableMessages;
             Context.Reply(new MessagesSendParams
             {
-                PeerId = Context.Message.PeerId,
                 RandomId = new Random().Next(),
                 Message = "Service alerts " + (!Context.User.DisableMessages ? "enabled" : "disabled")
             });
@@ -81,7 +78,6 @@ namespace VKBugTrackerBot
             Context.User.AllowNotification = !Context.User.AllowNotification;
             Context.Reply(new MessagesSendParams
             {
-                PeerId = Context.Message.PeerId,
                 RandomId = new Random().Next(),
                 Message = "Notifications " + (Context.User.AllowNotification ? "enabled" : "disabled")
             });
@@ -94,7 +90,6 @@ namespace VKBugTrackerBot
             {
                 Context.Reply(new MessagesSendParams
                 {
-                    PeerId = Context.Message.PeerId,
                     RandomId = new Random().Next(),
                     Message = $"Usage: /toggleProduct <product name>"
                 });
@@ -111,7 +106,6 @@ namespace VKBugTrackerBot
             }
             Context.Reply(new MessagesSendParams
             {
-                PeerId = Context.Message.PeerId,
                 RandomId = new Random().Next(),
                 Message = $"{pr} is " + (Context.User.ProductsBlacklist.Contains(pr) ? "added" : "removed") + " from blacklist."
             });
@@ -130,7 +124,6 @@ namespace VKBugTrackerBot
             sb.Append(bl);
             Context.Reply(new MessagesSendParams
             {
-                PeerId = Context.Message.PeerId,
                 RandomId = new Random().Next(),
                 Message = sb.ToString()
             });
@@ -143,7 +136,6 @@ namespace VKBugTrackerBot
             {
                 Context.Reply(new MessagesSendParams
                 {
-                    PeerId = Context.Message.PeerId,
                     RandomId = new Random().Next(),
                     Message = $"Usage: /send <message>"
                 });
@@ -152,7 +144,6 @@ namespace VKBugTrackerBot
             MainClass.VkBot.SendNotification(snd);
             Context.Reply(new MessagesSendParams
             {
-                PeerId = Context.Message.PeerId,
                 RandomId = new Random().Next(),
                 Message = $"Ok"
             });
@@ -166,7 +157,6 @@ namespace VKBugTrackerBot
             {
                 Context.Reply(new MessagesSendParams
                 {
-                    PeerId = Context.Message.PeerId,
                     RandomId = new Random().Next(),
                     Message = $"Unkown command"
                 });
@@ -181,7 +171,6 @@ namespace VKBugTrackerBot
             {
                 Context.Reply(new MessagesSendParams
                 {
-                    PeerId = Context.Message.PeerId,
                     RandomId = new Random().Next(),
                     Message = USAGE
                 });
@@ -191,7 +180,6 @@ namespace VKBugTrackerBot
             {
                 Context.Reply(new MessagesSendParams
                 {
-                    PeerId = Context.Message.PeerId,
                     RandomId = new Random().Next(),
                     Message = USAGE
                 });
@@ -201,7 +189,6 @@ namespace VKBugTrackerBot
             {
                 Context.Reply(new MessagesSendParams
                 {
-                    PeerId = Context.Message.PeerId,
                     RandomId = new Random().Next(),
                     Message = $"Error: [id{toAdmin}|User] not joined"
                 });
@@ -210,7 +197,6 @@ namespace VKBugTrackerBot
             v.IsAdmin = !v.IsAdmin;
             Context.Reply(new MessagesSendParams
             {
-                PeerId = Context.Message.PeerId,
                 RandomId = new Random().Next(),
                 Message = $"[[id{toAdmin}|{toAdmin}]] is now " + (v.IsAdmin ? "admin" : "not admin")
             });
@@ -235,7 +221,6 @@ namespace VKBugTrackerBot
             }
             Context.Reply(new MessagesSendParams
             {
-                PeerId = Context.Message.PeerId,
                 RandomId = new Random().Next(),
                 Message = sb.ToString()
             });
