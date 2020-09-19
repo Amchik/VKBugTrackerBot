@@ -167,6 +167,7 @@ namespace VKBugTrackerBot
                         {
                             api.Messages.Send(new MessagesSendParams
                             {
+                                PeerId = msg.PeerId,
                                 RandomId = new Random().Next(),
                                 Message = "Report outdated"
                             });
@@ -175,6 +176,7 @@ namespace VKBugTrackerBot
                         user.Bookmarks.Add(report);
                         api.Messages.Send(new MessagesSendParams
                         {
+                            PeerId = msg.PeerId,
                             RandomId = new Random().Next(),
                             Message = $"Report \"{report.Name}\" (#{report.Id}) added to bookmarks"
                         });
@@ -184,6 +186,7 @@ namespace VKBugTrackerBot
                         user.Bookmarks.RemoveWhere(r => r.Id == eventPayload.ReportId);
                         api.Messages.Send(new MessagesSendParams
                         {
+                            PeerId = msg.PeerId,
                             RandomId = new Random().Next(),
                             Message = "Report removed from bookmarks"
                         });
