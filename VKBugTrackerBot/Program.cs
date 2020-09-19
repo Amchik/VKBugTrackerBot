@@ -11,6 +11,8 @@ namespace VKBugTrackerBot
     internal static class MainClass
     {
         public static BotConfig Config { get; private set; }
+        public static BugTrackerParser BugTrackerParser { get; private set; }
+        public static VkBot VkBot { get; private set; }
 
         private static void PrintTime()
         {
@@ -80,14 +82,14 @@ namespace VKBugTrackerBot
                 ReportError($"Failed to read 'config.json': [{e.GetType().Name}] {e.Message}");
                 return 4;
             }
-            var t = new BugTrackerParser(Config.RemixSid);
-            var d = new VkBot(Config.Token, Config.GroupId);
-            t.OnNewReport += (_, e) =>
+            BugTrackerParser = new BugTrackerParser(Config.RemixSid);
+            VkBot = new VkBot(Config.Token, Config.GroupId);
+            BugTrackerParser.OnNewReport += (_, e) =>
             {
-                d.SendReport(e);
+                VkBot.SendReport(e);
             };
-            new Thread(() => t.Start()).Start();
-            new Thread(() => d.Start()).Start();
+            // new Thread(() => BugTrackerParser.Start()).Start();
+            new Thread(() => VkBot.Start()).Start();
             await Task.Delay(-1);
             return 0;
         }

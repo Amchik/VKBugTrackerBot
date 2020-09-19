@@ -30,6 +30,12 @@ namespace VKBugTrackerBot
         private readonly UInt64 groupId;
         private Boolean alive;
 
+        public IReadOnlyDictionary<Int64, UserPreferences> Users => users;
+
+        public VkBot()
+        {
+        }
+
         public VkBot(String accessToken, UInt64 groupId)
         {
             api = new VkApi();
@@ -189,6 +195,33 @@ namespace VKBugTrackerBot
                 if (msg.Text.FirstOrDefault() == '/')
                 {
                     String[] args = msg.Text.Split(' ');
+                    String cmd = new String(args.First().Skip(1).ToArray());
+                    args = args.Skip(1).ToArray();
+                    VkCommandContext context = new VkCommandContext(user, msg, cmd, args).InitWithVkApi(api);
+                    var method = CommandAttribute.FindMethods<VkCommandContext>(cmd).FirstOrDefault();
+                    if (method == null) continue; // TODO:
+                    var hasAdminRequired = CommandAttribute.HasAdminPermissionsRequired(method);
+                    if (hasAdminRequired.Value && !user.IsAdmin) continue; // TODO: see 199
+                    var ctor = CommandAttribute.GetConstructorInfo(method);
+                    Object instance;
+                    try
+                    {
+                        instance = ctor.Invoke(new[] { context });
+                    }
+                    catch (Exception ex)
+                    {
+                        MainClass.ReportError($"[VKBOT] Failed to create instance from ctor: [{ex.GetType().Name}] {ex.Message}");
+                        continue;
+                    }
+                    try
+                    {
+                        method.Invoke(instance, new Object[] { });
+                    }
+                    catch (Exception ex)
+                    {
+                        MainClass.ReportError($"[VKBOT] Unhandled exception while invoking method: [{ex.GetType().Name}] {ex.Message}");
+                    }
+                    continue;
                     switch (args.FirstOrDefault())
                     {
 #if DEBUG
