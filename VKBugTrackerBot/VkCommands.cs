@@ -18,11 +18,11 @@ namespace VKBugTrackerBot
         public void BookmarksCommand()
         {
             Int32 startIndex = 0;
-            if (Context.Arguments.Length == 2)
+            if (Context.Arguments.Length == 1)
             {
                 try
                 {
-                    startIndex = (Int32.Parse(Context.Arguments[1]) - 1) * 3;
+                    startIndex = (Int32.Parse(Context.Arguments[0]) - 1) * 3;
                 }
                 catch
                 {
@@ -86,7 +86,7 @@ namespace VKBugTrackerBot
         [Command("toggleProduct")]
         public void ToggleProductCommand()
         {
-            if (Context.Arguments.Length < 2)
+            if (Context.Arguments.Length < 1)
             {
                 Context.Reply(new MessagesSendParams
                 {
@@ -95,7 +95,7 @@ namespace VKBugTrackerBot
                 });
                 return;
             }
-            String pr = String.Join(" ", Context.Arguments, 1, Context.Arguments.Length - 1);
+            String pr = String.Join(" ", Context.Arguments);
             if (Context.User.ProductsBlacklist.Contains(pr))
             {
                 Context.User.ProductsBlacklist.Remove(pr);
@@ -132,7 +132,7 @@ namespace VKBugTrackerBot
         [Command("send", true)]
         public void SendCommand()
         {
-            if (Context.Arguments.Length < 2)
+            if (Context.Arguments.Length < 1)
             {
                 Context.Reply(new MessagesSendParams
                 {
@@ -140,7 +140,7 @@ namespace VKBugTrackerBot
                     Message = $"Usage: /send <message>"
                 });
             }
-            String snd = String.Join(" ", Context.Arguments, 1, Context.Arguments.Length - 1);
+            String snd = String.Join(" ", Context.Arguments);
             MainClass.VkBot.SendNotification(snd);
             Context.Reply(new MessagesSendParams
             {
@@ -165,7 +165,7 @@ namespace VKBugTrackerBot
             Int32 toAdmin;
             try
             {
-                toAdmin = Convert.ToInt32(Context.Arguments[1]);
+                toAdmin = Convert.ToInt32(Context.Arguments[0]);
             }
             catch (FormatException)
             {
