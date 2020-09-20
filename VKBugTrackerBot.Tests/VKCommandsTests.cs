@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+using VkNet.Enums.SafetyEnums;
 using VkNet.Model.RequestParams;
 
 namespace VKBugTrackerBot.Tests
@@ -23,7 +24,7 @@ namespace VKBugTrackerBot.Tests
                 user.Bookmarks.Add(new Report
                 {
                     Id = i,
-                    Name = "Some bookmark #",
+                    Name = "Some bookmark #" + i,
                     Product = "Some product",
                     Tags = new[] { "Tag1" }
                 });
@@ -141,6 +142,37 @@ namespace VKBugTrackerBot.Tests
             var p = InvokeCommand(FakeUser, "bookmarks", page.ToString());
             var excepted = $"({BOOKMARKS_ON_PAGE * (page - 1) + 1}-{Math.Min(BOOKMARKS_COUNT, BOOKMARKS_ON_PAGE * page)}/{BOOKMARKS_COUNT})";
             Assert.IsTrue(p.Message.Contains(excepted), $"Excepted \"{excepted}\", but actual \"{p.Message}\"");
+        }
+
+        [Test]
+        public void TestBookmarksNames()
+        {
+            var p = InvokeCommand(FakeUser, "bookmarks", "1");
+            var kb = p.Keyboard.Buttons.ToArray();
+
+            Assert.AreEqual("Some product: Some bookmark #0", kb[0].FirstOrDefault().Action.Label);
+            Assert.AreEqual("Some product: Some bookmark #1", kb[1].FirstOrDefault().Action.Label);
+            Assert.AreEqual("Some product: Some bookmark #2", kb[2].FirstOrDefault().Action.Label);
+        }
+
+        [Test]
+        public void TestBookmarksKeyboard()
+        {
+            var p = InvokeCommand(FakeUser, "bookmarks", "1");
+            var kb = p.Keyboard.Buttons;
+
+            Assert.AreEqual(3, kb.Count(), "Excepted 3 lines");
+            foreach (var buttons in kb)
+            {
+                Assert.AreEqual(2, buttons.Count(), "Excepted 2 buttons on line");
+
+                var b1 = buttons.ElementAt(0);
+                Assert.AreEqual(b1.Action.Type, KeyboardButtonActionType.OpenLink, "First button must be type open_link");
+
+                var b2 = buttons.ElementAt(1);
+                Assert.AreEqual(b2.Action.Type, KeyboardButtonActionType.Text, "Second button must be type text");
+                Assert.AreEqual(b2.Color, KeyboardButtonColor.Negative, "Second button must be color negative");
+            }
         }
     }
 }
