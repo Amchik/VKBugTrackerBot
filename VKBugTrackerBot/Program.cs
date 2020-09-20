@@ -88,7 +88,7 @@ namespace VKBugTrackerBot
             {
                 VkBot.SendReport(e);
             };
-            // new Thread(() => BugTrackerParser.Start()).Start();
+            new Thread(() => BugTrackerParser.Start()).Start();
             new Thread(() => VkBot.Start()).Start();
             await Task.Delay(-1);
             return 0;
