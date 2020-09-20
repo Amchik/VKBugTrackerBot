@@ -34,6 +34,15 @@ namespace VKBugTrackerBot
                     return;
                 }
             }
+            else
+            {
+                Context.Reply(new MessagesSendParams
+                {
+                    RandomId = new Random().Next(),
+                    Message = $"Использование: /bookmarks [page (int)]"
+                });
+                return;
+            }
             KeyboardBuilder kb = new KeyboardBuilder(false);
             kb.SetInline();
             foreach (var bookmark in Context.User.Bookmarks.Skip(startIndex).Take(3))
@@ -56,7 +65,7 @@ namespace VKBugTrackerBot
             Context.Reply(new MessagesSendParams
             {
                 RandomId = new Random().Next(),
-                Message = $"Закладки ({startIndex}-{Math.Min(startIndex + 3, Context.User.Bookmarks.Count)}/{Context.User.Bookmarks.Count})",
+                Message = $"Закладки ({startIndex + 1}-{Math.Min(startIndex + 3, Context.User.Bookmarks.Count)}/{Context.User.Bookmarks.Count})",
                 Keyboard = kb.Build()
             });
         }

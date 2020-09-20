@@ -18,13 +18,16 @@ namespace VKBugTrackerBot.Tests
 
         public void GenerateFakeBookmarks(UserPreferences user, Int32 count)
         {
-            Enumerable.Range(0, count).Select(i => user.Bookmarks.Add(new Report
+            for (Int32 i = 0; i < count; i++)
             {
-                Id = i,
-                Name = "Some bookmark #" + i,
-                Product = "Some product",
-                Tags = new[] { "Tag1" }
-            }));
+                user.Bookmarks.Add(new Report
+                {
+                    Id = i,
+                    Name = "Some bookmark #",
+                    Product = "Some product",
+                    Tags = new[] { "Tag1" }
+                });
+            }
         }
 
         public MessagesSendParams InvokeCommand(UserPreferences user, String cmd, params String[] args)
